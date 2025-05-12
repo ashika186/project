@@ -1,0 +1,54 @@
+!pip install gradio --quiet
+
+
+import gradio as gr
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+
+
+
+def predict_churn(monthly_charges, tenure_months, num_support_calls, contract_type):
+input_df = pd.DataFrame([{
+'monthly_charges': monthly_charges,
+'tenure_months': tenure_months,
+'num_support_calls': num_support_calls,
+'contract_type': contract_type
+}])
+
+X = pd.DataFrame({
+'monthly_charges': [70, 80, 90],
+'tenure_months': [12, 24, 36],
+'num_support_calls': [1, 2, 3],
+'contract_type_One year': [0, 1, 0],
+'contract_type_Two year': [0, 0, 1]
+})
+
+input_encoded = pd.get_dummies(input_df, drop_first=True)
+
+
+input_encoded = input_encoded.reindex(columns=X.columns, fill_value=0)
+
+return input_encoded
+
+
+def predict_churn_outcome(model, input_scaled): # Assuming this line is the intended start of a function
+prediction = model.predict(input_scaled)[0]
+return "Churn" if prediction == 1 else "No Churn" # This line should be indented to be part of the function
+
+
+interface = gr.Interface(
+fn=predict_churn,
+inputs=[
+gr.Number(label="Monthly Charges"),
+gr.Number(label="Tenure (in months)"),
+gr.Number(label="Number of Support Calls"),
+gr.Dropdown(['Month-to-month', 'One year', 'Two year'], label="Contract Type")
+],
+outputs=gr.Text(label="Churn Prediction"),
+title="📊 Customer Churn Predictor",
+description="Enter customer details to predict churn likelihood."
+)
+
+interface.launch(share=True)
+
